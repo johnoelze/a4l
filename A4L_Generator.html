@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0054)file:///Users/johnoelze/Downloads/A4L_Generator_6.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A4L — Soul Awakening Guide Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<link href="./A4L_Generator_files/css2" rel="stylesheet">
 <style>
   /* ── Reset ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -445,12 +445,12 @@
     <h2>SOUL AWAKENING GUIDE GENERATOR</h2>
 
     <div class="api-row">
-      <input type="text" id="apiKey" placeholder="Paste your Anthropic API key here" />
+      <input type="text" id="apiKey" placeholder="Paste your Anthropic API key here">
     </div>
 
     <div class="input-row">
-      <input type="text" id="bookTitle" placeholder="Book Title" />
-      <input type="text" id="bookAuthor" placeholder="Author Name" />
+      <input type="text" id="bookTitle" placeholder="Book Title">
+      <input type="text" id="bookAuthor" placeholder="Author Name">
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">GENERATE GUIDE</button>
@@ -495,15 +495,15 @@ Format:
 }
 
 Rules:
-- Generate 3-4 takeaways maximum — no more
-- Each takeaway title: 4-6 words max
-- point: 1-2 sentences only — short and punchy, not long
-- ask: one short sentence
-- The reflection question (ask) should feel personal and gentle, not guilt-inducing
+- Generate 4-5 takeaways
+- Each takeaway title: 4-7 words, punchy and memorable
+- point: EXACTLY 3 full sentences. Warm, plain English, like explaining to a friend over coffee. No fragments.
+- ask: One full warm reflection question — not a fragment
+- one_liner: One complete punchy sentence a reader could repeat to a friend
+- big_quote: 2 full sentences capturing the heart of the book
+- The reflection question should feel personal and gentle, not guilt-inducing
 - No religious clichés
-- one_liner: under 12 words
-- big_quote: 1 sentence only
-- CRITICAL: Keep ALL text extremely brief — this must fit on one printed page`;
+- IMPORTANT: Write rich, full sentences throughout. The goal is a page that feels substantial and worth keeping.`;
 
 const BRAND_COLORS = ['#8B3A2A','#8B6813','#1a3a5c','#2d5a27'];
 
@@ -684,5 +684,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter') generate();
 });
 </script>
-</body>
-</html>
+
+
+</body></html>
