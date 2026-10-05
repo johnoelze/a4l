@@ -572,6 +572,8 @@
     .diamonds { padding: 4px 0 3px !important; }
 
     .doc { page-break-inside: avoid !important; break-inside: avoid !important; transform-origin: top left !important; }
+    .doc-body { display: flex !important; flex-direction: column !important; }
+    .cards-grid { flex: 1 1 auto !important; }
   }
 
   /* -- Mirror of the print sizing above, toggled by JS (.print-mode on <body>) so we can
@@ -612,6 +614,8 @@
     .print-mode .footer-legal p { font-size: 6.5px !important; line-height: 1.4 !important; }
     .print-mode .diamonds { padding: 4px 0 3px !important; }
     .print-mode .doc { page-break-inside: avoid !important; break-inside: avoid !important; }
+    .print-mode .doc-body { display: flex !important; flex-direction: column !important; }
+    .print-mode .cards-grid { flex: 1 1 auto !important; }
 </style>
 </head>
 <body>
@@ -635,7 +639,7 @@
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">GENERATE GUIDE</button>
-    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 27</div>
+    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 29</div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
     <div id="errorMsg" class="error-msg" style="display:none"></div>
   </div>
@@ -893,8 +897,7 @@ async function generate() {
 
     const docEl = document.getElementById('doc');
     docEl.className = 'doc brand-' + currentBrand;
-    docEl.style.transform = '';
-    docEl.style.width = '';
+    clearFit();
     docEl.innerHTML = buildDoc(data, title, author, currentBrand);
     docEl.dataset.title = title;
     docEl.dataset.author = author;
@@ -922,9 +925,7 @@ function resetForm() {
   document.getElementById('docWrap').style.display = 'none';
   document.getElementById('toolbar').style.display = 'none';
   document.getElementById('errorMsg').style.display = 'none';
-  const docEl = document.getElementById('doc');
-  docEl.style.transform = '';
-  docEl.style.width = '';
+  clearFit();
   document.getElementById('bookTitle').focus();
 }
 
@@ -934,39 +935,67 @@ function resetForm() {
 // past one page, shrink the ENTIRE guide -- header, cards, and footer together
 // -- by a single scale factor so nothing gets cut and the footer never falls
 // off. If it already fits, nothing is touched.
-const PAGE_HEIGHT_PX = 10.45 * 96; // 10.6in printable, minus a small safety cushion
+const PAGE_HEIGHT_PX = 10.45 * 96; // target height: 10.6in printable minus a small safety cushion
+const PAGE_FULL_PX = 10.5 * 96;    // doc is given this much height so the footer sits at the page bottom
 const PAGE_WIDTH_PX = 8.1 * 96;
-const MIN_SCALE = 0.7; // floor so text never shrinks past readable
+const MIN_SCALE = 0.7;  // never shrink past readable
+const MAX_SCALE = 1.3;  // never blow up past reasonable
 
+function clearFit() {
+  const docEl = document.getElementById('doc');
+  if (!docEl) return;
+  docEl.style.transform = '';
+  docEl.style.width = '';
+  docEl.style.minHeight = '';
+}
+
+// Fits the guide to exactly one printed page. Measures at the TRUE printed width
+// (Letter 8.5in minus 0.2in margins = 8.1in), then scales the WHOLE guide --
+// header, cards and footer together -- down if it runs long or up if it runs
+// short, and stretches the cards so the footer always sits at the page bottom.
 function fitOnePage() {
   const docEl = document.getElementById('doc');
   if (!docEl || !docEl.innerHTML.trim()) return;
 
-  // Reset first so we always measure the true, unscaled height.
-  docEl.style.transform = '';
-  docEl.style.width = '';
+  clearFit();
 
-  // Measure at the TRUE printed width (Letter 8.5in minus 0.2in margins = 8.1in),
-  // not the screen width -- a narrower page wraps text more and runs taller.
   const wrap = document.getElementById('docWrap');
   const savedWrapCss = wrap.style.cssText;
   wrap.style.width = PAGE_WIDTH_PX + 'px';
   wrap.style.maxWidth = 'none';
   wrap.style.margin = '0';
   document.body.classList.add('print-mode');
-  const naturalHeight = docEl.scrollHeight;
+
+  // Layout height of the guide when laid out (width = page width / scale).
+  const layoutHeight = (sc) => {
+    docEl.style.minHeight = '';
+    docEl.style.width = (100 / sc) + '%';
+    return docEl.scrollHeight;
+  };
+
+  // Scaling up narrows the layout and re-wraps text, so re-measure after
+  // every adjustment until the scaled height settles on the page target.
+  let scale = 1;
+  for (let i = 0; i < 8; i++) {
+    const visual = layoutHeight(scale) * scale;
+    const next = Math.min(Math.max(scale * PAGE_HEIGHT_PX / visual, MIN_SCALE), MAX_SCALE);
+    if (Math.abs(next - scale) < 0.002) break;
+    scale = next;
+  }
+  // Final safety: if rounding left it a hair too tall, nudge down.
+  while (layoutHeight(scale) * scale > PAGE_HEIGHT_PX && scale > MIN_SCALE) {
+    scale = Math.max(scale - 0.01, MIN_SCALE);
+  }
+  scale = Math.round(scale * 1000) / 1000;
+  layoutHeight(scale);
+
   document.body.classList.remove('print-mode');
   wrap.style.cssText = savedWrapCss;
-
-  if (naturalHeight <= PAGE_HEIGHT_PX) return; // already fits, leave it alone
-
-  let scale = PAGE_HEIGHT_PX / naturalHeight;
-  scale = Math.max(scale, MIN_SCALE);
-  scale = Math.round(scale * 1000) / 1000;
 
   docEl.style.transformOrigin = 'top left';
   docEl.style.transform = `scale(${scale})`;
   docEl.style.width = (100 / scale) + '%';
+  docEl.style.minHeight = (PAGE_FULL_PX / scale) + 'px';
 }
 
 function savePDF() {
@@ -984,9 +1013,7 @@ function savePDF() {
 window.addEventListener('beforeprint', fitOnePage);
 window.addEventListener('afterprint', () => {
   document.title = 'Book Summary Generator';
-  const docEl = document.getElementById('doc');
-  docEl.style.transform = '';
-  docEl.style.width = '';
+  clearFit();
 });
 
 window.addEventListener('load', () => setBrand('ssm'));
