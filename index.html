@@ -560,6 +560,9 @@
     .doc { page-break-inside: avoid !important; break-inside: avoid !important; transform-origin: top left !important; }
     .doc-body { display: flex !important; flex-direction: column !important; }
     .cards-grid { flex: 1 1 auto !important; }
+    /* Pure-CSS page fill (no script needed): the guide is always one full printed page,
+       footer pinned to the bottom, cards stretched to use any spare room. */
+    .doc { min-height: 10.5in !important; }
   }
 
   /* -- Mirror of the print sizing above, toggled by JS (.print-mode on <body>) so we can
@@ -625,7 +628,7 @@
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">GENERATE GUIDE</button>
-    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 31</div>
+    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 32</div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
     <div id="errorMsg" class="error-msg" style="display:none"></div>
   </div>
