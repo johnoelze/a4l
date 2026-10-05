@@ -635,7 +635,7 @@
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">GENERATE GUIDE</button>
-    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 26</div>
+    <div style="margin-top:10px;font-size:10px;color:#5F6D82;letter-spacing:1px;font-family:monospace">VERSION 27</div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
     <div id="errorMsg" class="error-msg" style="display:none"></div>
   </div>
@@ -934,7 +934,8 @@ function resetForm() {
 // past one page, shrink the ENTIRE guide -- header, cards, and footer together
 // -- by a single scale factor so nothing gets cut and the footer never falls
 // off. If it already fits, nothing is touched.
-const PAGE_HEIGHT_PX = 10.6 * 96;
+const PAGE_HEIGHT_PX = 10.45 * 96; // 10.6in printable, minus a small safety cushion
+const PAGE_WIDTH_PX = 8.1 * 96;
 const MIN_SCALE = 0.7; // floor so text never shrinks past readable
 
 function fitOnePage() {
@@ -945,9 +946,17 @@ function fitOnePage() {
   docEl.style.transform = '';
   docEl.style.width = '';
 
+  // Measure at the TRUE printed width (Letter 8.5in minus 0.2in margins = 8.1in),
+  // not the screen width -- a narrower page wraps text more and runs taller.
+  const wrap = document.getElementById('docWrap');
+  const savedWrapCss = wrap.style.cssText;
+  wrap.style.width = PAGE_WIDTH_PX + 'px';
+  wrap.style.maxWidth = 'none';
+  wrap.style.margin = '0';
   document.body.classList.add('print-mode');
   const naturalHeight = docEl.scrollHeight;
   document.body.classList.remove('print-mode');
+  wrap.style.cssText = savedWrapCss;
 
   if (naturalHeight <= PAGE_HEIGHT_PX) return; // already fits, leave it alone
 
